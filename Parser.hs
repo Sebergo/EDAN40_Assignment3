@@ -23,7 +23,7 @@ cons(a, b) = a:b
     Just(a, cs') -> 
         case n cs' of
         Nothing -> Nothing
-        Just(b, cs'') -> Just((b), cs'')
+        Just(b, cs'') -> Just(b, cs'')
 
 (#-) :: Parser a -> Parser b -> Parser a
 (m #- n) cs= 
@@ -32,7 +32,7 @@ cons(a, b) = a:b
     Just(a, cs') -> 
         case n cs' of
         Nothing -> Nothing
-        Just(b, cs'') -> Just((a), cs'')
+        Just(b, cs'') -> Just(a, cs'')
 
 spacesHelper :: Char -> Parser String
 spacesHelper c = spaces >-> ((:) c)
@@ -51,13 +51,13 @@ word = token (letter # iter letter >-> cons)
 
 chars :: Int -> Parser String
 chars 0 = return ""
-chars n =  ((letter) #> (\ c -> (chars (n-1)) >-> ((:) c)))
+chars n =  (char #> (\ c -> (chars (n-1)) >-> ((:) c)))
 
 accept :: String -> Parser String
 accept w = (token (chars (length w))) ? (==w)
 
 require :: String -> Parser String
-require w  = err ("Could not find" ++ w)
+require w  = accept w ! err ("Could not find: " ++ w)
 
 lit :: Char -> Parser Char
 lit c = token char ? (==c)
