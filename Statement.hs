@@ -11,9 +11,13 @@ data Statement =
     If Expr.T Statement.T Statement.T |
     While Expr.T Statement.T |
     Read String |
-    Write Expr.T
+    Write Expr.T |
+    Comment String
     
     deriving Show
+
+getComment = accept "--" -# iter (char ? ((/=) '\n')) #- require "\n" >-> buildComment
+buildComment s = Comment s
 
 assignment = word #- accept ":=" # Expr.parse #- require ";" >-> buildAss
 buildAss (v, e) = Assignment v e
@@ -46,5 +50,5 @@ exec (If cond thenStmts elseStmts: stmts) dict input =
     else exec (elseStmts: stmts) dict input
 
 instance Parse Statement where
-  parse = getSkip ! assignment ! getRead ! getWrite ! getIf ! getWhile ! getBegin
+  parse = getSkip ! assignment ! getRead ! getWrite ! getIf ! getWhile ! getBegin ! getComment
   toString = error "Statement.toString not implemented"

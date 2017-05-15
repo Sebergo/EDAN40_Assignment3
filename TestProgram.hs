@@ -3,7 +3,7 @@ module TestProgram where
 
 import Program
 
-p, p1, p2, p3 :: Program.T
+p, p1, p2, p3, p4 :: Program.T
 p = fromString  ("\
 \read k;\
 \read n;\
