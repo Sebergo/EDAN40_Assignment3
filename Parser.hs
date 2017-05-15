@@ -22,8 +22,11 @@ m -# n = error "-# not implemented"
 (#-) :: Parser a -> Parser b -> Parser a
 m #- n = error "#- not implemented"
 
+spacesHelper :: Char -> Parser String
+spacesHelper c = spaces >-> ((:) c)
+
 spaces :: Parser String
-spaces =  error "spaces not implemented"
+spaces = ((char ? isSpace) #> spacesHelper) ! (return "")
 
 token :: Parser a -> Parser a
 token m = m #- spaces
@@ -35,7 +38,8 @@ word :: Parser String
 word = token (letter # iter letter >-> cons)
 
 chars :: Int -> Parser String
-chars n =  error "chars not implemented"
+chars 0 = return ""
+chars n =  ((letter) #> (\ c -> (chars (n-1)) >-> ((:) c)))
 
 accept :: String -> Parser String
 accept w = (token (chars (length w))) ? (==w)
