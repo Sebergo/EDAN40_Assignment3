@@ -7,10 +7,9 @@ type T = Statement
 data Statement =
     Assignment String Expr.T |
     Skip |
-    Begin Statement |
-    If Expr.T Statement Statement |
-    If2 |
-    While Expr.T Statement |
+    Begin [Statement.T] |
+    If Expr.T Statement.T Statement.T |
+    While Expr.T Statement.T |
     Read String |
     Write Expr.T
     
@@ -28,14 +27,17 @@ buildRead v = Read v
 getWrite = accept "write" -# Expr.parse #- require ";" >-> buildWrite
 buildWrite v = Write v
 
---getBegin = accept "begin" -# parse #- require "end" >-> buildBegin
---buildBegin s
+getWhile = accept "while" -# Expr.parse #- require "do" # parse >-> buildWhile
+buildWhile (e, s) = While e s
 
-getIf = accept "read" -# Parse Statement #- require ";" >-> buildIf
-buildIf v = If2 v
 
---getIf = accept "if" -# Expr.parse #- require "then" -# parse #- require "else" -# parse >-> buildIf
---buildIf (e,s1,s2) = If e s1 s2  
+parseStatements = (parse #> (\ s -> parseStatements >-> ((:) s))) ! return []
+
+getBegin = accept "begin" -# parseStatements #- require "end" >-> buildBegin
+buildBegin s = Begin s
+
+getIf = accept "if" -# Expr.parse #- require "then" # parse #- require "else" # parse >-> buildIf
+buildIf ((e,s1),s2) = If e s1 s2  
 
 exec :: [T] -> Dictionary.T String Integer -> [Integer] -> [Integer]
 exec (If cond thenStmts elseStmts: stmts) dict input = 
@@ -44,5 +46,5 @@ exec (If cond thenStmts elseStmts: stmts) dict input =
     else exec (elseStmts: stmts) dict input
 
 instance Parse Statement where
-  parse = getSkip ! assignment ! getRead ! getWrite
+  parse = getSkip ! assignment ! getRead ! getWrite ! getIf ! getWhile ! getBegin
   toString = error "Statement.toString not implemented"
