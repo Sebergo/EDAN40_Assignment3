@@ -13,7 +13,6 @@ data Statement =
     Read String |
     Write Expr.T |
     Comment String
-    
     deriving Show
 
 getComment = accept "--" -# iter (char ? ((/=) '\n')) #- require "\n" >-> buildComment
@@ -44,10 +43,21 @@ getIf = accept "if" -# Expr.parse #- require "then" # parse #- require "else" # 
 buildIf ((e,s1),s2) = If e s1 s2  
 
 exec :: [T] -> Dictionary.T String Integer -> [Integer] -> [Integer]
+exec [] dict input = []
+exec (Assignment v e:stmts) dict input = exec stmts (Dictionary.insert (v, (Expr.value e dict)) dict) input
+exec (Skip:stmts) dict input = exec stmts dict input
+exec (Begin xs:stmts) dict input = exec (xs++stmts) dict input
 exec (If cond thenStmts elseStmts: stmts) dict input = 
     if (Expr.value cond dict)>0 
     then exec (thenStmts: stmts) dict input
     else exec (elseStmts: stmts) dict input
+exec (While cond s:stmts) dict input =
+    if (Expr.value cond dict)>0 
+    then exec (s: stmts) dict input
+    else exec stmts dict input
+exec (Read s:stmts) dict (i:input) = exec stmts (Dictionary.insert (s,i) dict) input
+exec (Write e:stmts) dict input = (Expr.value e dict) : exec stmts dict input
+exec (Comment s:stmts) dict input = exec stmts dict input
 
 instance Parse Statement where
   parse = getSkip ! assignment ! getRead ! getWrite ! getIf ! getWhile ! getBegin ! getComment

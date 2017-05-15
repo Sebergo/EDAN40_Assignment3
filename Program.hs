@@ -3,9 +3,18 @@ import Parser hiding (T)
 import qualified Statement
 import qualified Dictionary
 import Prelude hiding (return, fail)
-newtype T = Program () -- to be defined
+newtype T = Program [Statement.T] deriving Show -- to be defined
 instance Parse T where
-  parse = error "Program.parse not implemented"
+  parse = error "not implemented"
   toString = error "Program.toString not implemented"
-             
-exec = error "Program.exec not implemented"
+  fromString cs = (Program (inner cs))
+ 
+
+exec (Program p) ints = Statement.exec p Dictionary.empty ints
+  
+  
+inner xs =
+    case parse xs of
+           Just(s, []) -> [s]
+           Just(s, xs2) -> s:(inner xs2)
+           Nothing -> error "Nothing"
