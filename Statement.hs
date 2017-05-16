@@ -61,4 +61,12 @@ exec (Comment s:stmts) dict input = exec stmts dict input
 
 instance Parse Statement where
   parse = getSkip ! assignment ! getRead ! getWrite ! getIf ! getWhile ! getBegin ! getComment
-  toString = error "Statement.toString not implemented"
+
+  toString (Assignment v e) = v++ " :="  ++ Expr.toString e ++";\n"
+  toString (Skip) = "skip;\n"  
+  toString (Begin xs) = "begin\n  " ++ foldr ((++).toString) [] xs ++ "end\n"
+  toString (If cond thenStmts elseStmts) = "if " ++ Expr.toString cond ++ " then\n  " ++ toString thenStmts ++ "else\n  " ++ toString elseStmts
+  toString (While cond s) = "while " ++ Expr.toString cond ++ " do \n" ++ toString s
+  toString (Read s)  = "read " ++ s ++";\n"
+  toString (Write e) = "write " ++ Expr.toString e ++ ";\n"
+  toString (Comment s) = "-- " ++ s

@@ -6,7 +6,7 @@ import Prelude hiding (return, fail)
 newtype T = Program [Statement.T] deriving Show -- to be defined
 instance Parse T where
   parse = error "not implemented"
-  toString = error "Program.toString not implemented"
+  toString (Program xs) = foldr ((++).Statement.toString) [] xs 
   fromString cs = (Program (inner cs))
  
 
