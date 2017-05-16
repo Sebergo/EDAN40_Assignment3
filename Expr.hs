@@ -30,13 +30,15 @@ import Data.Maybe
 
 data Expr = Num Integer | Var String | Add Expr Expr 
        | Sub Expr Expr | Mul Expr Expr | Div Expr Expr
+       | Exp Expr Expr
+
          deriving Show
 
 type T = Expr
 
-var, num, factor, term, expr :: Parser Expr
+var, num, factor, term, expr, expon :: Parser Expr
 
-term', expr' :: Expr -> Parser Expr
+term', expr', expon' :: Expr -> Parser Expr
 
 var = word >-> Var
 
@@ -48,15 +50,20 @@ mulOp = lit '*' >-> (\ _ -> Mul) !
 addOp = lit '+' >-> (\ _ -> Add) !
         lit '-' >-> (\ _ -> Sub)
 
+exponOp = lit '^' >-> (\ _ -> Exp)
+
 bldOp e (oper,e') = oper e e'
 
 factor = num !
          var !
          lit '(' -# expr #- lit ')' !
          err "illegal factor"
-             
-term' e = mulOp # factor >-> bldOp e #> term' ! return e
-term = factor #> term'
+
+expon' e = exponOp # factor >-> bldOp e #> expon' ! return e             
+expon = factor #> expon'
+
+term' e = mulOp # expon >-> bldOp e #> term' ! return e
+term = expon #> term'
        
 expr' e = addOp # term >-> bldOp e #> expr' ! return e
 expr = term #> expr'
@@ -76,6 +83,7 @@ value (Num n) _   = n
 value (Add l r) d = value l d + value r d
 value (Sub l r) d = value l d - value r d
 value (Mul l r) d = value l d * value r d
+value (Exp l r) d = value l d ^ value r d
 value (Var v) d   =
   case Dictionary.lookup v d of
     Nothing -> error "Variable not defined"
