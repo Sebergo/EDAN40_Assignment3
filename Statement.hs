@@ -53,7 +53,7 @@ exec (If cond thenStmts elseStmts: stmts) dict input =
     else exec (elseStmts: stmts) dict input
 exec (While cond s:stmts) dict input =
     if (Expr.value cond dict)>0 
-    then exec (s: stmts) dict input
+    then exec (s:(While cond s): stmts) dict input
     else exec stmts dict input
 exec (Read s:stmts) dict (i:input) = exec stmts (Dictionary.insert (s,i) dict) input
 exec (Write e:stmts) dict input = (Expr.value e dict) : exec stmts dict input

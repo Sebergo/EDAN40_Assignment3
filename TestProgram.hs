@@ -3,7 +3,7 @@ module TestProgram where
 
 import Program
 
-p, p1, p2, p3, p4 :: Program.T
+p, pm, p1, p2, p3, p4 :: Program.T
 p = fromString  ("\
 \read k;\
 \read n;\
@@ -16,6 +16,17 @@ p = fromString  ("\
 \      write m;\
 \    m := m + 1;\
 \  end")
+
+pm = fromString  ("\
+\read k;\
+\read n;\
+\ begin\
+\m := 1;\
+\m := m + 1;\
+\write m;\
+\end")
+
+rpm = Program.exec pm [3,16]
 
 p1 = fromString  ("\
 \read n;\
